@@ -1053,6 +1053,16 @@ export const OrchestrationV2ContextHandoff = Schema.Struct({
 });
 export type OrchestrationV2ContextHandoff = typeof OrchestrationV2ContextHandoff.Type;
 
+/** One row of a provider's context breakdown, e.g. Claude's `/context` "Messages" row.
+    `free` is the remaining window, `buffer` the compaction reserve, and `deferred`
+    rows sit outside the window. */
+export const OrchestrationV2ContextCategory = Schema.Struct({
+  name: Schema.String,
+  tokens: NonNegativeInt,
+  kind: Schema.Literals(["used", "free", "buffer", "deferred"]),
+});
+export type OrchestrationV2ContextCategory = typeof OrchestrationV2ContextCategory.Type;
+
 /** Live context usage reported by the provider mid-turn (#8144). */
 export const OrchestrationV2ProviderTurnTokenUsage = Schema.Struct({
   usedTokens: NonNegativeInt,
@@ -1064,6 +1074,8 @@ export const OrchestrationV2ProviderTurnTokenUsage = Schema.Struct({
   /** Prompt cache lifetime the provider wrote with this report. Clients treat
       the cache as cold once `updatedAt` is this old. */
   promptCacheTtlMs: Schema.optional(PositiveInt),
+  /** Breakdown of the window by category, when the provider reports one (Claude). */
+  contextCategories: Schema.optional(Schema.Array(OrchestrationV2ContextCategory)),
   /** ISO timestamp of the provider's report; string so wire encoding is stable. */
   updatedAt: Schema.String,
 });

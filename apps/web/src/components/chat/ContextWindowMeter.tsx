@@ -2,6 +2,7 @@ import { Button } from "../ui/button";
 import { type ContextWindowSnapshot, formatContextWindowTokens } from "~/lib/contextWindow";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import {
+  contextWindowCategoryRows,
   formatContextWindowCompactionMessage,
   formatContextWindowCost,
 } from "./ContextWindowMeter.logic";
@@ -33,6 +34,7 @@ export function ContextWindowMeter(props: {
   const dashOffset = circumference * (1 - normalizedPercentage / 100);
   const totalProcessedTokens = usage.totalProcessedTokens ?? null;
   const showTotalProcessed = totalProcessedTokens !== null && totalProcessedTokens > 0;
+  const contextCategoryRows = contextWindowCategoryRows(usage.contextCategories);
   const isOverloaded = normalizedPercentage > 90;
   const usageColor = isOverloaded
     ? "var(--color-error)"
@@ -142,6 +144,28 @@ export function ContextWindowMeter(props: {
               <span className="font-medium tabular-nums text-secondary-label">
                 {formatContextWindowCost(usage.cost)}
               </span>
+            </div>
+          ) : null}
+          {contextCategoryRows.length > 0 ? (
+            <div className="mt-1 flex flex-col gap-1 border-t border-border/60 pt-2">
+              {contextCategoryRows.map((row) => (
+                <div
+                  key={`${row.kind}:${row.name}`}
+                  className={`flex items-center justify-between gap-3 text-2xs leading-4 ${
+                    row.share === null ? "opacity-60" : ""
+                  }`}
+                >
+                  <span className="truncate text-secondary-label">{row.name}</span>
+                  <span className="shrink-0 font-medium tabular-nums text-secondary-label">
+                    {formatContextWindowTokens(row.tokens)}
+                    {row.share === null ? null : (
+                      <span className="ml-2 inline-block w-9 text-right">
+                        {formatPercentage(row.share)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           ) : null}
           {usage.compactsAutomatically ? (

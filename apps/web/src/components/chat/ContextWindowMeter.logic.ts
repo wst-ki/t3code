@@ -1,4 +1,9 @@
-import type { ModelSelection, ProviderDriverKind, ProviderInstanceId } from "@t3tools/contracts";
+import type {
+  ModelSelection,
+  OrchestrationV2ContextCategory,
+  ProviderDriverKind,
+  ProviderInstanceId,
+} from "@t3tools/contracts";
 import {
   CLAUDE_RESUME_COMPACTION_NEVER_ANSWER,
   isClaudeResumeCompactionQuestion,
@@ -146,4 +151,35 @@ export function formatContextWindowCost(cost: {
 }): string {
   const fractionDigits = Math.abs(cost.amount) > 0 && Math.abs(cost.amount) < 0.01 ? 4 : 2;
   return `${cost.currency} ${cost.amount.toFixed(fractionDigits)}`;
+}
+
+export interface ContextWindowCategoryRow {
+  readonly name: string;
+  readonly tokens: number;
+  readonly kind: OrchestrationV2ContextCategory["kind"];
+  /** Percent of the window, or null for rows outside it (deferred tools). */
+  readonly share: number | null;
+}
+
+/** Rows for the meter's breakdown, in the provider's order. Shares are of the
+    window the rows add up to, so deferred rows get none. */
+export function contextWindowCategoryRows(
+  categories: ReadonlyArray<OrchestrationV2ContextCategory> | undefined,
+): Array<ContextWindowCategoryRow> {
+  if (categories === undefined) return [];
+  const windowTokens = categories.reduce(
+    (sum, category) => (category.kind === "deferred" ? sum : sum + category.tokens),
+    0,
+  );
+  return categories
+    .filter((category) => category.tokens > 0)
+    .map((category) => ({
+      name: category.name,
+      tokens: category.tokens,
+      kind: category.kind,
+      share:
+        category.kind === "deferred" || windowTokens <= 0
+          ? null
+          : (category.tokens / windowTokens) * 100,
+    }));
 }
