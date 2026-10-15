@@ -14127,3 +14127,24 @@ describe("ClaudeAdapterV2 query message stream", () => {
     }),
   );
 });
+
+describe("claudeContextCategories", () => {
+  it("keeps rows with tokens and drops unknown kinds", () => {
+    assert.deepStrictEqual(
+      ClaudeAdapterV2.claudeContextCategories({
+        categories: [
+          { name: "Messages", tokens: 244_512.4, color: "blue", kind: "used" },
+          { name: "Skills", tokens: 0, color: "yellow", kind: "used" },
+          { name: "Free space", tokens: 680_100, color: "gray", kind: "free" },
+          { name: "MCP tools (deferred)", tokens: 1_800, color: "gray", kind: "deferred" },
+          { name: "Future row", tokens: 10, color: "gray", kind: "other" as "used" },
+        ],
+      }),
+      [
+        { name: "Messages", tokens: 244_512, kind: "used" },
+        { name: "Free space", tokens: 680_100, kind: "free" },
+        { name: "MCP tools (deferred)", tokens: 1_800, kind: "deferred" },
+      ],
+    );
+  });
+});

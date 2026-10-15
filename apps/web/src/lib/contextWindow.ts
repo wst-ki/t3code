@@ -1,4 +1,5 @@
 import type {
+  OrchestrationV2ContextCategory,
   OrchestrationV2ProviderTurn,
   OrchestrationV2ProviderTurnTokenUsage,
   OrchestrationV2ProviderThread,
@@ -21,6 +22,8 @@ export type ContextWindowSnapshot = NullableContextWindowUsage & {
   readonly remainingTokens: number | null;
   readonly usedPercentage: number | null;
   readonly remainingPercentage: number | null;
+  /** Breakdown by category, when the provider reports one (Claude). */
+  readonly contextCategories?: ReadonlyArray<OrchestrationV2ContextCategory>;
   readonly updatedAt: string;
 };
 
@@ -77,6 +80,9 @@ export function deriveLatestContextWindowSnapshot(
       compactsAutomatically: true,
       autoCompactThreshold: null,
       cost: null,
+      ...(liveUsage.contextCategories === undefined
+        ? {}
+        : { contextCategories: liveUsage.contextCategories }),
       updatedAt: liveUsage.updatedAt,
     };
   }

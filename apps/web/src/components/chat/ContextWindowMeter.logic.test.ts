@@ -2,6 +2,7 @@ import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3
 import { describe, expect, it } from "vite-plus/test";
 import { deriveProviderInstanceEntries } from "../../providerInstances";
 import {
+  contextWindowCategoryRows,
   formatContextWindowCompactionMessage,
   hasAvailableCompactionProvider,
   hasDismissedResumeCompaction,
@@ -305,5 +306,28 @@ describe("formatContextWindowCost", () => {
   it("keeps ordinary and sub-cent ACP costs readable", () => {
     expect(formatContextWindowCost({ amount: 0.42, currency: "USD" })).toBe("USD 0.42");
     expect(formatContextWindowCost({ amount: 0.0042, currency: "USD" })).toBe("USD 0.0042");
+  });
+});
+
+describe("contextWindowCategoryRows", () => {
+  it("shares the window across used, free and buffer rows, not deferred ones", () => {
+    expect(
+      contextWindowCategoryRows([
+        { name: "Messages", tokens: 250, kind: "used" },
+        { name: "Skills", tokens: 0, kind: "used" },
+        { name: "Free space", tokens: 700, kind: "free" },
+        { name: "Autocompact buffer", tokens: 50, kind: "buffer" },
+        { name: "MCP tools (deferred)", tokens: 400, kind: "deferred" },
+      ]),
+    ).toEqual([
+      { name: "Messages", tokens: 250, kind: "used", share: 25 },
+      { name: "Free space", tokens: 700, kind: "free", share: 70 },
+      { name: "Autocompact buffer", tokens: 50, kind: "buffer", share: 5 },
+      { name: "MCP tools (deferred)", tokens: 400, kind: "deferred", share: null },
+    ]);
+  });
+
+  it("returns no rows without a breakdown", () => {
+    expect(contextWindowCategoryRows(undefined)).toEqual([]);
   });
 });
