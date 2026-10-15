@@ -183,3 +183,27 @@ export function contextWindowCategoryRows(
           : (category.tokens / windowTokens) * 100,
     }));
 }
+
+export interface ContextWindowTokenTypeRow {
+  readonly label: string;
+  readonly tokens: number;
+}
+
+/** The latest request's tokens by type, for providers that report them (Codex,
+    OpenCode, Claude). Rows without a positive count are left out. */
+export function contextWindowTokenTypeRows(usage: {
+  readonly inputTokens: number | null;
+  readonly cachedInputTokens: number | null;
+  readonly outputTokens: number | null;
+  readonly reasoningOutputTokens: number | null;
+}): Array<ContextWindowTokenTypeRow> {
+  const rows: Array<readonly [string, number | null]> = [
+    ["Input", usage.inputTokens],
+    ["Cached input", usage.cachedInputTokens],
+    ["Output", usage.outputTokens],
+    ["Reasoning", usage.reasoningOutputTokens],
+  ];
+  return rows.flatMap(([label, tokens]) =>
+    tokens !== null && Number.isFinite(tokens) && tokens > 0 ? [{ label, tokens }] : [],
+  );
+}
