@@ -3,6 +3,7 @@ import { type ContextWindowSnapshot, formatContextWindowTokens } from "~/lib/con
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import {
   contextWindowCategoryRows,
+  contextWindowTokenTypeRows,
   formatContextWindowCompactionMessage,
   formatContextWindowCost,
 } from "./ContextWindowMeter.logic";
@@ -35,6 +36,7 @@ export function ContextWindowMeter(props: {
   const totalProcessedTokens = usage.totalProcessedTokens ?? null;
   const showTotalProcessed = totalProcessedTokens !== null && totalProcessedTokens > 0;
   const contextCategoryRows = contextWindowCategoryRows(usage.contextCategories);
+  const tokenTypeRows = contextWindowTokenTypeRows(usage);
   const isOverloaded = normalizedPercentage > 90;
   const usageColor = isOverloaded
     ? "var(--color-error)"
@@ -144,6 +146,22 @@ export function ContextWindowMeter(props: {
               <span className="font-medium tabular-nums text-secondary-label">
                 {formatContextWindowCost(usage.cost)}
               </span>
+            </div>
+          ) : null}
+          {tokenTypeRows.length > 0 ? (
+            <div className="mt-1 flex flex-col gap-1 border-t border-border/60 pt-2">
+              <div className="text-secondary-label text-2xs">Last request</div>
+              {tokenTypeRows.map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-center justify-between gap-3 text-2xs leading-4"
+                >
+                  <span className="text-secondary-label">{row.label}</span>
+                  <span className="font-medium tabular-nums text-secondary-label">
+                    {formatContextWindowTokens(row.tokens)}
+                  </span>
+                </div>
+              ))}
             </div>
           ) : null}
           {contextCategoryRows.length > 0 ? (

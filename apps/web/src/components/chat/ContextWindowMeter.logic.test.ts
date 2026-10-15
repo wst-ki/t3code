@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { deriveProviderInstanceEntries } from "../../providerInstances";
 import {
   contextWindowCategoryRows,
+  contextWindowTokenTypeRows,
   formatContextWindowCompactionMessage,
   hasAvailableCompactionProvider,
   hasDismissedResumeCompaction,
@@ -329,5 +330,33 @@ describe("contextWindowCategoryRows", () => {
 
   it("returns no rows without a breakdown", () => {
     expect(contextWindowCategoryRows(undefined)).toEqual([]);
+  });
+});
+
+describe("contextWindowTokenTypeRows", () => {
+  it("lists the token types with a positive count", () => {
+    expect(
+      contextWindowTokenTypeRows({
+        inputTokens: 182_000,
+        cachedInputTokens: 150_000,
+        outputTokens: 12_000,
+        reasoningOutputTokens: 0,
+      }),
+    ).toEqual([
+      { label: "Input", tokens: 182_000 },
+      { label: "Cached input", tokens: 150_000 },
+      { label: "Output", tokens: 12_000 },
+    ]);
+  });
+
+  it("returns no rows when the provider reports no token types", () => {
+    expect(
+      contextWindowTokenTypeRows({
+        inputTokens: null,
+        cachedInputTokens: null,
+        outputTokens: null,
+        reasoningOutputTokens: null,
+      }),
+    ).toEqual([]);
   });
 });
